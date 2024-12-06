@@ -1,0 +1,84 @@
+from PyQt5.QtWidgets import QMessageBox, QMainWindow, QLabel, QApplication
+from PyQt5.uic import loadUi
+import sys
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super(MainWindow, self).__init__()
+        loadUi("dd.ui", self)
+
+        # Kết nối nút bấm với hàm chuyển trang
+        self.p1.clicked.connect(self.spage_1)
+        self.p2.clicked.connect(self.spage_2)
+        self.p3.clicked.connect(self.spage_3)
+
+        # Kết nối nút tạo với hàm tạo cột
+        self.pushButton.clicked.connect(self.create_column)
+
+        # Danh sách nốt nhạc
+        self.notes = [f"c{octave}" for octave in range(2, 6)]
+        for octave in range(2, 6):
+            self.notes += [
+                f"c{octave}", f"c#{octave}", f"d{octave}", f"d#{octave}",
+                f"e{octave}", f"f{octave}", f"f#{octave}", f"g{octave}",
+                f"g#{octave}", f"a{octave}", f"a#{octave}", f"b{octave}"
+            ]
+    def spage_1(self):
+        self.s1.setCurrentWidget(self.page_1)
+
+    def spage_2(self):
+        self.s1.setCurrentWidget(self.page_2)
+
+    def spage_3(self):
+        self.s1.setCurrentWidget(self.page_3)
+
+    def create_column(self):
+        """Tạo cột nốt nhạc."""
+        if not self.textEdit_1.toPlainText() or not self.textEdit_2.toPlainText():
+            QMessageBox.warning(self, "Cảnh báo", "Yêu cầu bạn nhập START và END không được bỏ trống!")
+            return
+
+        try:
+            start_time = float(self.textEdit_1.toPlainText())
+            end_time = float(self.textEdit_2.toPlainText())
+        except ValueError:
+            QMessageBox.warning(self, "Lỗi", "START hoặc END phải là số!")
+            return
+
+        height = (end_time - start_time) * 100  # Tính chiều cao (nhân 100 để tỷ lệ hiển thị)
+        if height <= 0:
+            QMessageBox.warning(self, "Lỗi", "END phải lớn hơn START!")
+            return
+        # Lấy thông tin nốt
+        note_base = self.comboBox_2.currentText()
+        note_number = self.comboBox_3.currentText()
+        note = f"{note_base}{note_number}"
+        if note not in self.notes:
+            QMessageBox.warning(self, "Lỗi", f"Nốt nhạc '{note}' không hợp lệ!")
+            return
+        # Tạo QLabel làm cột
+        column = QLabel(self)
+        column.setStyleSheet("background-color: green;")
+        column.setFixedSize(30, height)
+
+        # Xác định widget scroll area dựa trên nhạc cụ
+        instrument = self.comboBox.currentText()
+        if instrument == "PIANO":
+            parent_widget = self.sc1
+        elif instrument == "VIOLIN":
+            parent_widget = self.sc2
+        elif instrument == "GUITAR":
+            parent_widget = self.sc3
+        else:
+            QMessageBox.warning(self, "Lỗi", "Nhạc cụ không hợp lệ!")
+            return
+
+        # Thêm cột vào widget tương ứng
+        column.setParent(parent_widget)
+        column.move(10, parent_widget.height() - height - 10)  # Căn vị trí ở đáy widget
+        column.show()
+
+app = QApplication(sys.argv)
+main_window = MainWindow()
+main_window.show()
+sys.exit(app.exec_())
