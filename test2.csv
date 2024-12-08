@@ -1,0 +1,25 @@
+type ,note,start,finish,duration
+piano1,A4,0,0.4,0.4
+piano1,B4,0.4,0.8,0.4
+piano1,C5,0.8,1.6,0.8
+piano1,F2,0.8,1.2,0.4
+piano1,C3,1.2,1.6,0.4
+piano1,F3,1.6,2,0.4
+piano1,B4,1.6,2,0.4
+piano1,A3,2,2.4,0.4
+piano1,A4,2,2.4,0.4
+piano1,G4,2.4,3.2,0.8
+piano1,G2,2.4,2.8,0.4
+piano1,D3,2.8,3.2,0.4
+piano1,G3,3.2,3.6,0.4
+piano1,E4,3.2,3.6,0.4
+piano1,A2,4,4.4,0.4
+piano1,D4,3.6,4,0.4
+piano1,E4,4,4.8,0.8
+piano1,E3,4.4,4.8,0.4
+piano1,A3,4.8,5.2,0.4
+piano1,A4,4.8,5.2,0.4
+string,C5,0.8,2,1.2
+string,G4,2.4,3.6,1.2
+string,E4,4,4.6,0.6
+string,A4,4.8,5.4,0.6
