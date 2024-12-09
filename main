@@ -10,6 +10,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("dd.ui", self)
+        self.selected_column = None  # Lưu trạng thái cột được chọn
+
 
         # Danh sách các nốt nhạc từ C2 đến A6
         self.notes = [f"{note}{octave}" for octave in range(2, 7) for note in
@@ -46,6 +48,8 @@ class MainWindow(QMainWindow):
         self.pushButton.clicked.connect(self.create_column)
         self.pushButton_2.clicked.connect(self.export_csv)  # Xuất file CSV
         self.create_time_markers()
+        self.pushButton_4.clicked.connect(self.delete_column) #Nút xóa
+        self.pushButton_3.clicked.connect(self.edit_column)  # Nút Sửa
 
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
@@ -173,6 +177,17 @@ class MainWindow(QMainWindow):
                 f"Finish: {finish_time}\n"
                 f"Duration: {finish_time - start_time}"
             )
+
+            def select_column(event):
+                if self.selected_column:
+                    self.selected_column.setStyleSheet(
+                        self.selected_column.styleSheet().replace("border: 2px solid red;", ""))
+                self.selected_column = column
+                column.setStyleSheet(column.styleSheet() + "border: 2px solid red;")
+                tooltip = column.toolTip()
+                self.label_11.setText(tooltip.replace("\n", "<br>") ) # Thay thế xuống dòng thành HTML <br> để hiển thị đẹp hơn
+
+            column.mousePressEvent = select_column
             column.show()
 
         # Tạo cột cho các nốt không có dấu # trước
@@ -243,9 +258,90 @@ class MainWindow(QMainWindow):
             widget.setMinimumHeight(self.song_duration * 100)
             widget.updateGeometry()
 
+    def delete_column(self):
+        if not self.selected_column:
+            QMessageBox.warning(self, "Lỗi", "Không có cột nào được chọn để xóa!")
+            return
+
+        tooltip = self.selected_column.toolTip()
+        details = dict(line.split(": ") for line in tooltip.split("\n"))
+        note = details["Note"]
+        start_time = float(details["Start"])
+        end_time = float(details["Finish"])
+        instrument = details["Instrument"]
+
+        self.selected_column.deleteLater()
+        self.selected_column = None
+        # Xóa khỏi `used_intervals`
+        self.used_intervals[note] = [
+            interval for interval in self.used_intervals[note]
+            if not (interval[0] == start_time and interval[1] == end_time and interval[2] == instrument)
+        ]
+
+        self.music_data = [
+            data for data in self.music_data
+            if not (data["note"] == note and data["start"] == start_time and data["finish"] == end_time and data[
+                "type"] == instrument)
+        ]
+
+        start_index = int(start_time * self.resolution)
+        end_index = int(end_time * self.resolution)
+        for i in range(start_index, end_index):
+            self.signal_array[note][i] = 0
+
+        self.update_display()
+
+    def edit_column(self):
+        """Sửa cột nốt nhạc được chọn."""
+        if not self.selected_column:
+            QMessageBox.warning(self, "Lỗi", "Không có cột nào được chọn để sửa!")
+            return
+
+        # Lấy giá trị từ các trường đầu vào
+        new_note_base = self.comboBox_4.currentText()
+        new_note_number = self.comboBox_6.currentText()
+        new_note = f"{new_note_base}{new_note_number}"
+
+        try:
+            new_start_time = float(self.textEdit_4.toPlainText())
+            new_end_time = float(self.textEdit_5.toPlainText())
+        except ValueError:
+            QMessageBox.warning(self, "Lỗi", "START hoặc END phải là số!")
+            return
+
+        if new_start_time < 0 or new_end_time > self.song_duration or new_start_time >= new_end_time:
+            QMessageBox.warning(self, "Lỗi", "Thời gian không hợp lệ!")
+            return
+
+        # Lấy thông tin nhạc cụ từ tooltip của cột được chọn
+        tooltip = self.selected_column.toolTip()
+        details = dict(line.split(": ") for line in tooltip.split("\n"))
+        instrument = details["Instrument"]
+
+        # Xóa nốt cũ
+        self.delete_column()
+
+        # Thêm nốt mới
+        start_index = int(new_start_time * self.resolution)
+        end_index = int(new_end_time * self.resolution)
+
+        for i in range(start_index, end_index):
+            self.signal_array[new_note][i] = 1
+
+        self.music_data.append({
+            "type": instrument,
+            "note": new_note,
+            "start": new_start_time,
+            "finish": new_end_time,
+            "duration": new_end_time - new_start_time
+        })
+
+        self.update_display()
+
 
 app = QApplication(sys.argv)
 main_window = MainWindow()
 main_window.show()
 sys.exit(app.exec_())
+
 
