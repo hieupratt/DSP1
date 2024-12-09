@@ -1,28 +1,52 @@
+import csv
 from PyQt5.QtWidgets import QMessageBox, QMainWindow, QLabel, QApplication
 from PyQt5.uic import loadUi
+from PyQt5.QtCore import Qt
 import sys
+import os
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         loadUi("dd.ui", self)
 
-        # Kết nối nút bấm với hàm chuyển trang
+        # Danh sách các nốt nhạc từ C2 đến A6
+        self.notes = [f"{note}{octave}" for octave in range(2, 7) for note in
+                      ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]]
+
+        # Tạo vị trí x cho các nốt
+        base_positions = {"C": 20, "D": 50, "E": 80, "F": 110, "G": 140, "A": 170, "B": 200}
+        sharp_offsets = {"C#": 40, "D#": 70, "F#": 130, "G#": 160, "A#": 190}
+
+        self.note_positions = {}
+        for octave in range(2, 7):
+            for note in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]:
+                if note in base_positions:
+                    self.note_positions[f"{note}{octave}"] = base_positions[note] + (octave - 2) * 210
+                elif note in sharp_offsets:
+                    self.note_positions[f"{note}{octave}"] = sharp_offsets[note] + (octave - 2) * 210
+
+        # Cấu hình thời gian bài hát
+        self.song_duration = 30
+        self.resolution = 10
+        self.time_array_length = self.song_duration * self.resolution
+
+        # Khởi tạo mảng tín hiệu và lưu trữ dữ liệu
+        self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
+        self.used_intervals = {note: [] for note in self.notes}
+        self.music_data = []  # Danh sách lưu dữ liệu cho CSV
+
+        # Kết nối nút bấm
         self.p1.clicked.connect(self.spage_1)
         self.p2.clicked.connect(self.spage_2)
         self.p3.clicked.connect(self.spage_3)
-
-        # Kết nối nút tạo với hàm tạo cột
+        self.p4.clicked.connect(self.tao)
+        self.p5.clicked.connect(self.sua)
         self.pushButton.clicked.connect(self.create_column)
+        self.pushButton_2.clicked.connect(self.export_csv)  # Xuất file CSV
+        self.create_time_markers()
 
-        # Danh sách nốt nhạc
-        self.notes = [f"c{octave}" for octave in range(2, 6)]
-        for octave in range(2, 6):
-            self.notes += [
-                f"c{octave}", f"c#{octave}", f"d{octave}", f"d#{octave}",
-                f"e{octave}", f"f{octave}", f"f#{octave}", f"g{octave}",
-                f"g#{octave}", f"a{octave}", f"a#{octave}", f"b{octave}"
-            ]
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
 
@@ -32,8 +56,23 @@ class MainWindow(QMainWindow):
     def spage_3(self):
         self.s1.setCurrentWidget(self.page_3)
 
+    def tao(self):
+        self.s2.setCurrentWidget(self.page_4)
+
+    def sua(self):
+        self.s2.setCurrentWidget(self.page_5)
+
+    def is_valid_interval(self, start_time, end_time, note, instrument):
+        """Kiểm tra xem khoảng thời gian, nốt nhạc và nhạc cụ có hợp lệ không."""
+        for interval in self.used_intervals.get(note, []):
+            existing_start, existing_end, existing_instrument = interval
+            # Kiểm tra điều kiện chồng lấn thời gian và nhạc cụ khác
+            if instrument == existing_instrument and not (end_time <= existing_start or start_time >= existing_end):
+                return False
+        return True
+
     def create_column(self):
-        """Tạo cột nốt nhạc."""
+        """Xử lý tín hiệu nốt nhạc và hiển thị trên cột."""
         if not self.textEdit_1.toPlainText() or not self.textEdit_2.toPlainText():
             QMessageBox.warning(self, "Cảnh báo", "Yêu cầu bạn nhập START và END không được bỏ trống!")
             return
@@ -45,40 +84,168 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Lỗi", "START hoặc END phải là số!")
             return
 
-        height = (end_time - start_time) * 100  # Tính chiều cao (nhân 100 để tỷ lệ hiển thị)
-        if height <= 0:
-            QMessageBox.warning(self, "Lỗi", "END phải lớn hơn START!")
+        if start_time < 0 or end_time > self.song_duration or start_time >= end_time:
+            QMessageBox.warning(self, "Lỗi", "Thời gian không hợp lệ!")
             return
-        # Lấy thông tin nốt
+
         note_base = self.comboBox_2.currentText()
         note_number = self.comboBox_3.currentText()
         note = f"{note_base}{note_number}"
+
         if note not in self.notes:
             QMessageBox.warning(self, "Lỗi", f"Nốt nhạc '{note}' không hợp lệ!")
             return
-        # Tạo QLabel làm cột
-        column = QLabel(self)
-        column.setStyleSheet("background-color: green;")
-        column.setFixedSize(30, height)
 
-        # Xác định widget scroll area dựa trên nhạc cụ
         instrument = self.comboBox.currentText()
-        if instrument == "PIANO":
-            parent_widget = self.sc1
-        elif instrument == "VIOLIN":
-            parent_widget = self.sc2
-        elif instrument == "GUITAR":
-            parent_widget = self.sc3
-        else:
-            QMessageBox.warning(self, "Lỗi", "Nhạc cụ không hợp lệ!")
+
+        # Kiểm tra nốt nhạc và khoảng thời gian
+        if not self.is_valid_interval(start_time, end_time, note, instrument):
+            QMessageBox.warning(self, "Lỗi", "Khoảng thời gian hoặc nốt nhạc bị chồng lấn!")
             return
 
-        # Thêm cột vào widget tương ứng
-        column.setParent(parent_widget)
-        column.move(10, parent_widget.height() - height - 10)  # Căn vị trí ở đáy widget
-        column.show()
+        start_index = int(start_time * self.resolution)
+        end_index = int(end_time * self.resolution)
+        for i in range(start_index, end_index):
+            self.signal_array[note][i] = 1
+
+        self.used_intervals[note].append((start_time, end_time, instrument))
+        self.music_data.append({
+            "type": instrument,
+            "note": note,
+            "start": start_time,
+            "finish": end_time,
+            "duration": end_time - start_time
+        })
+
+        self.update_display()
+
+    def update_display(self):
+        """Cập nhật hiển thị cột tín hiệu theo từng nhạc cụ riêng biệt."""
+        for sc_widget in [self.sc1, self.sc2, self.sc3]:
+
+            sc_widget.setMinimumHeight(self.song_duration * 100)
+            # sc_widget.updateGeometry()
+            self.sa_1.verticalScrollBar().setValue(self.sa_1.verticalScrollBar().maximum())
+            self.sa_2.verticalScrollBar().setValue(self.sa_2.verticalScrollBar().maximum())
+            self.sa_3.verticalScrollBar().setValue(self.sa_3.verticalScrollBar().maximum())
+            for child in sc_widget.findChildren(QLabel):
+                if child.toolTip():  # Chỉ xóa các cột tín hiệu, giữ lại thời gian
+                    child.deleteLater()
+
+        sharp_notes = [data for data in self.music_data if "#" in data["note"]]
+        natural_notes = [data for data in self.music_data if "#" not in data["note"]]
+
+        # Hàm phụ để tạo cột
+        def create_column1(note_data):
+            note = note_data["note"]
+            start_time = note_data["start"]
+            finish_time = note_data["finish"]
+            instrument = note_data["type"]
+
+            if instrument == "PIANO":
+                sc_widget = self.sc1
+            elif instrument == "VIOLIN":
+                sc_widget = self.sc2
+            elif instrument == "GUITAR":
+                sc_widget = self.sc3
+            else:
+                QMessageBox.warning(self, "Lỗi", "Nhạc cụ không hợp lệ!")
+                return
+
+            x_position = self.note_positions[note]
+            y_start = self.song_duration * 100 - int(start_time * self.resolution) * 10
+            y_end = self.song_duration * 100 - int(finish_time * self.resolution) * 10
+            column_height = y_start - y_end
+
+            column = QLabel(sc_widget)
+            if "#" in note:
+                column.setStyleSheet("background-color: blue;")
+                column.setFixedSize(20, column_height)
+            else:
+                column.setStyleSheet("background-color: green;")
+                column.setFixedSize(30, column_height)
+
+            column.move(x_position, y_end)
+            column.setToolTip(
+                f"Instrument: {instrument}\n"
+                f"Note: {note}\n"
+                f"Start: {start_time}\n"
+                f"Finish: {finish_time}\n"
+                f"Duration: {finish_time - start_time}"
+            )
+            column.show()
+
+        # Tạo cột cho các nốt không có dấu # trước
+        for data in natural_notes:
+            create_column1(data)
+
+        # Tạo cột cho các nốt có dấu # sau
+        for data in sharp_notes:
+            create_column1(data)
+
+    def export_csv(self):
+        """Xuất dữ liệu ra file CSV với tên tùy chỉnh."""
+        if not self.music_data:
+            QMessageBox.warning(self, "Lỗi", "Không có dữ liệu để xuất!")
+            return
+
+        # Lấy tên tệp từ textEdit_3
+        file_name = self.textEdit_3.toPlainText().strip()
+        if not file_name:
+            QMessageBox.warning(self, "Lỗi", "Vui lòng nhập tên tệp trước khi xuất file!")
+            return
+
+        # Thêm đuôi ".csv" nếu chưa có
+        if not file_name.endswith(".csv"):
+            file_name += ".csv"
+
+        # Kiểm tra trùng lặp tệp
+        if os.path.exists(file_name):
+            QMessageBox.warning(self, "Lỗi", f"Tệp '{file_name}' đã tồn tại! Vui lòng chọn tên khác.")
+            return
+
+        # Lưu tệp CSV
+        try:
+            with open(file_name, mode="w", newline="") as file:
+                writer = csv.DictWriter(file, fieldnames=["type", "note", "start", "finish", "duration"])
+                writer.writeheader()
+                for row in self.music_data:
+                    row_copy = row.copy()
+                    if row_copy["type"] == "VIOLIN":
+                        row_copy["type"] = "string"
+                    writer.writerow(row_copy)
+
+            QMessageBox.information(self, "Thành công", f"Dữ liệu đã được lưu vào tệp '{file_name}'!")
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể lưu tệp: {e}")
+
+    def create_time_markers(self):
+        """Hiển thị mốc thời gian ở bên trái màn hình."""
+        for widget in [self.w1, self.w2, self.w3]:
+            widget.setFixedSize(20, self.song_duration * 100)  # Cố định chiều cao ban đầu
+            widget.setStyleSheet("background-color: lightgray;")  # Tùy chỉnh màu nền
+
+            # Xóa các mốc cũ (nếu có)
+            for child in widget.findChildren(QLabel):
+                child.deleteLater()
+
+            # Thêm các mốc thời gian
+            for t in range(0, self.time_array_length + 1, self.resolution // 2):
+                label = QLabel(widget)
+                label.setStyleSheet("color: black; font-size: 10px;")
+                label.setText(f"{t / self.resolution:.1f}s")  # Hiển thị thời gian
+                label.adjustSize()
+                y = self.song_duration * 100 - t * 10 - label.height() // 2  # Căn chỉnh vị trí
+                label.move(0, y)
+                label.show()
+
+            # Cập nhật kích thước widget bên trong để scroll bar hoạt động
+            widget.setMinimumHeight(self.song_duration * 100)
+            widget.updateGeometry()
+
 
 app = QApplication(sys.argv)
 main_window = MainWindow()
 main_window.show()
 sys.exit(app.exec_())
+
