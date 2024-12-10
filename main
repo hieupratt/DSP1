@@ -84,29 +84,29 @@ class MainWindow(QMainWindow):
         loadUi("dd.ui", self)
         self.selected_column = None  # Lưu trạng thái cột được chọn
 
-        # Danh sách các nốt nhạc
-        self.notes = [f"{note}{num}" for num in range(2, 6) for note in
+        # Danh sách các nốt nhạc từ C2 đến A6
+        self.notes = [f"{note}{octave}" for octave in range(2, 6) for note in
                       ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]]
 
         # Tạo vị trí x cho các nốt
-        p1 = {"C": 20, "D": 50, "E": 80, "F": 110, "G": 140, "A": 170, "B": 200} # vị trí ban đầu của nốt nhạc
-        p2 = {"C#": 40, "D#": 70, "F#": 130, "G#": 160, "A#": 190} # vị trí ban đầu nốt có #
+        base_positions = {"C": 20, "D": 50, "E": 80, "F": 110, "G": 140, "A": 170, "B": 200}
+        sharp_offsets = {"C#": 40, "D#": 70, "F#": 130, "G#": 160, "A#": 190}
 
         self.note_positions = {}
-        for num in range(2, 6):
+        for octave in range(2, 6):
             for note in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]:
-                if note in p1:
-                    self.note_positions[f"{note}{num}"] = p1[note] + (num - 2) * 210 #cập nhật vị trí các nốt
-                elif note in p2:
-                    self.note_positions[f"{note}{num}"] = p2[note] + (num - 2) * 210 #cập nhật vị trí các nốt #
+                if note in base_positions:
+                    self.note_positions[f"{note}{octave}"] = base_positions[note] + (octave - 2) * 210
+                elif note in sharp_offsets:
+                    self.note_positions[f"{note}{octave}"] = sharp_offsets[note] + (octave - 2) * 210
 
         # Cấu hình thời gian bài hát
         self.song_duration = 30
         self.resolution = 10
-        self.timelength = self.song_duration * self.resolution
+        self.time_array_length = self.song_duration * self.resolution
 
         # Khởi tạo mảng tín hiệu và lưu trữ dữ liệu
-        self.signal_array = {note: [0] * self.timelength for note in self.notes}
+        self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
         self.used_intervals = {note: [] for note in self.notes}
         self.music_data = []  # Danh sách lưu dữ liệu cho CSV
 
@@ -121,7 +121,6 @@ class MainWindow(QMainWindow):
 
         self.p_1.clicked.connect(self.tao)
         self.p_2.clicked.connect(self.sua)
-
         self.pushButton.clicked.connect(self.create_column)
         self.pushButton_2.clicked.connect(self.export_csv)  # Xuất file CSV
         self.create_time_markers()
@@ -158,17 +157,19 @@ class MainWindow(QMainWindow):
         self.s2.setCurrentWidget(self.page2)
 
     def is_valid_interval(self, start_time, end_time, note, instrument):
-        #kiểm tra nốt nhạc và thời gian
+        """Kiểm tra xem khoảng thời gian, nốt nhạc và nhạc cụ có hợp lệ không."""
         for interval in self.used_intervals.get(note, []):
             existing_start, existing_end, existing_instrument = interval
             # Kiểm tra điều kiện chồng lấn thời gian và nhạc cụ khác
             if instrument == existing_instrument and not (end_time <= existing_start or start_time >= existing_end):
                 return False
         return True
-
     def choose_csv_file(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Chọn file CSV", "", "CSV Files (*.csv)")
-        if not file_path:
+        if file_path:
+            file_name = file_path.split("/")[-1]  # Tách tên file từ đường dẫn
+            self.textEdit_3.setText(file_name)
+        else:
             return  # Trở lại giao diện chính nếu không chọn file
 
         try:
@@ -183,7 +184,7 @@ class MainWindow(QMainWindow):
 
             # Xóa dữ liệu cũ và cập nhật lại dữ liệu
             self.music_data.clear()
-            self.signal_array = {note: [0] * self.timelength for note in self.notes}
+            self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
             self.used_intervals = {note: [] for note in self.notes}
 
             for _, row in data.iterrows():
@@ -215,8 +216,8 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Thành công", "Dữ liệu từ file CSV đã được cập nhật!")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể đọc file CSV: {e}")
-
     def create_column(self):
+        """Xử lý tín hiệu nốt nhạc và hiển thị trên cột."""
         if not self.textEdit_1.toPlainText() or not self.textEdit_2.toPlainText():
             QMessageBox.warning(self, "Cảnh báo", "Yêu cầu bạn nhập START và END không được bỏ trống!")
             return
@@ -265,10 +266,9 @@ class MainWindow(QMainWindow):
 
         self.update_display()
 
-
     def clear_all(self):
         self.music_data.clear()
-        self.signal_array = {note: [0] * self.timelength for note in self.notes}
+        self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
         self.used_intervals = {note: [] for note in self.notes}
         self.update_display()
     def update_display(self):
@@ -288,11 +288,16 @@ class MainWindow(QMainWindow):
                 if child.toolTip():  # Chỉ xóa các cột tín hiệu, giữ lại thời gian
                     child.deleteLater()
 
-        notes1 = [data for data in self.music_data if "#" in data["note"]]
-        notes2 = [data for data in self.music_data if "#" not in data["note"]]
+        sharp_notes = [data for data in self.music_data if "#" in data["note"]]
+        natural_notes = [data for data in self.music_data if "#" not in data["note"]]
 
         # Hàm phụ để tạo cột
         def create_column1(note_data):
+            if self.selected_column:
+                self.selected_column.setStyleSheet(
+                    self.selected_column.styleSheet().replace("border: 2px solid red;", "")
+                )
+            self.selected_column = None
             note = note_data["note"]
             start_time = note_data["start"]
             finish_time = note_data["finish"]
@@ -323,10 +328,20 @@ class MainWindow(QMainWindow):
 
             column = QLabel(sc_widget)
             if "#" in note:
-                column.setStyleSheet("background-color: blue;")
+                column.setStyleSheet(
+                    """
+                    background-color: blue;
+                    border-radius : 8px; 
+                    """
+                )
                 column.setFixedSize(20, column_height)
             else:
-                column.setStyleSheet("background-color: green;")
+                column.setStyleSheet(
+                    """
+                    background-color: green;
+                    border-radius : 10px; 
+                    """
+                )
                 column.setFixedSize(30, column_height)
 
             column.move(x_position, y_end)
@@ -335,7 +350,7 @@ class MainWindow(QMainWindow):
                 f"Note: {note}\n"
                 f"Start: {start_time}\n"
                 f"Finish: {finish_time}\n"
-                f"Duration: {finish_time - start_time}"
+                f"Duration: {round(finish_time - start_time,1)}"
             )
 
             def select_column(event):
@@ -372,11 +387,11 @@ class MainWindow(QMainWindow):
             column.show()
 
         # Tạo cột cho các nốt không có dấu # trước
-        for data in notes2:
+        for data in natural_notes:
             create_column1(data)
 
         # Tạo cột cho các nốt có dấu # sau
-        for data in notes1:
+        for data in sharp_notes:
             create_column1(data)
 
 
@@ -399,8 +414,10 @@ class MainWindow(QMainWindow):
 
         # Kiểm tra trùng lặp tệp
         if os.path.exists(file_name):
-            QMessageBox.warning(self, "Lỗi", f"Tệp '{file_name}' đã tồn tại! Vui lòng chọn tên khác.")
-            return
+            reply = QMessageBox.question(self, "Trùng Tên", "Tên file này đã tồn tại. Bạn có muốn ghi đè lên không?",
+                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.No:
+                return
 
         # Lưu tệp CSV
         try:
@@ -444,7 +461,7 @@ class MainWindow(QMainWindow):
                 child.deleteLater()
 
             # Thêm các mốc thời gian
-            for t in range(0, self.timelength + 1, self.resolution // 2):
+            for t in range(0, self.time_array_length + 1, self.resolution // 2):
                 label = QLabel(widget)
                 label.setStyleSheet("color: black; font-size: 10px;")
                 label.setText(f"{t / self.resolution:.1f}s")  # Hiển thị thời gian
