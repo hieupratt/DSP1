@@ -132,31 +132,57 @@ class MainWindow(QMainWindow):
 
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
+        self.highlight_button1(self.p1)
 
     def spage_2(self):
         self.s1.setCurrentWidget(self.page_2)
+        self.highlight_button1(self.p2)
 
     def spage_3(self):
         self.s1.setCurrentWidget(self.page_3)
+        self.highlight_button1(self.p3)
 
     def spage_4(self):
         self.s1.setCurrentWidget(self.page_4)
+        self.highlight_button1(self.p4)
 
     def spage_5(self):
         self.s1.setCurrentWidget(self.page_5)
+        self.highlight_button1(self.p5)
 
     def spage_6(self):
         self.s1.setCurrentWidget(self.page_6)
+        self.highlight_button1(self.p6)
 
     def spage_7(self):
         self.s1.setCurrentWidget(self.page_7)
+        self.highlight_button1(self.p7)
 
     def tao(self):
         self.s2.setCurrentWidget(self.page1)
+        self.highlight_button2(self.p_1)
 
     def sua(self):
         self.s2.setCurrentWidget(self.page2)
+        self.highlight_button2(self.p_2)
 
+    def highlight_button1(self, selected_button):
+        # Đặt lại màu cho các nút không được bấm
+        buttons = [self.p1, self.p2, self.p3, self.p4, self.p5, self.p6, self.p7]
+        for button in buttons:
+            button.setStyleSheet("background-color: none;")  # Trạng thái mặc định
+
+        # Làm nổi bật nút được bấm
+        selected_button.setStyleSheet("background-color: lightblue;")
+
+    def highlight_button2(self, selected_button):
+        # Đặt lại màu sắc cho tất cả các nút
+        buttons = [self.p_1, self.p_2]
+        for button in buttons:
+            button.setStyleSheet("background-color: none;")  # Trạng thái mặc định
+
+        # Làm nổi bật nút được chọn
+        selected_button.setStyleSheet("background-color: yellow;")
     def is_valid_interval(self, start_time, end_time, note, instrument):
         """Kiểm tra xem khoảng thời gian, nốt nhạc và nhạc cụ có hợp lệ không."""
         for interval in self.used_intervals.get(note, []):
