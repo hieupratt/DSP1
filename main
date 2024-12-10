@@ -306,7 +306,7 @@ class MainWindow(QMainWindow):
 
             if instrument == "CFX Grand" or instrument == "cfx":
                 sc_widget = self.sc1
-            elif instrument == "Bosendorfer" or instrument == "bos":
+            elif instrument == "Bosendorfer" or instrument == "bor":
                 sc_widget = self.sc2
             elif instrument == "Harpsichord" or instrument == "harp":
                 sc_widget = self.sc3
@@ -430,7 +430,7 @@ class MainWindow(QMainWindow):
                     if row_copy["type"] == "CFX Grand":
                         row_copy["type"] = "cfx"
                     elif row_copy["type"] == "Bosendorfer":
-                        row_copy["type"] = "bos"
+                        row_copy["type"] = "bor"
                     elif row_copy["type"] == "Harpsichord":
                         row_copy["type"] = "harp"
                     elif row_copy["type"] == "Vibraphone":
