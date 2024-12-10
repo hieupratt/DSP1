@@ -1830,9 +1830,9 @@ background-color: rgb(250, 250, 250);
     <property name="geometry">
      <rect>
       <x>1060</x>
-      <y>710</y>
+      <y>660</y>
       <width>221</width>
-      <height>81</height>
+      <height>51</height>
      </rect>
     </property>
     <property name="font">
@@ -2251,7 +2251,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="page1">
      <widget class="QWidget" name="widget_2" native="true">
@@ -3894,7 +3894,7 @@ p, li { white-space: pre-wrap; }
          <x>60</x>
          <y>340</y>
          <width>141</width>
-         <height>51</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="font">
@@ -5113,11 +5113,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <item>
         <property name="text">
-         <string>1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>2</string>
         </property>
        </item>
@@ -5136,11 +5131,6 @@ p, li { white-space: pre-wrap; }
          <string>5</string>
         </property>
        </item>
-       <item>
-        <property name="text">
-         <string>6</string>
-        </property>
-       </item>
       </widget>
       <widget class="QPushButton" name="pushButton_4">
        <property name="geometry">
@@ -5148,7 +5138,7 @@ p, li { white-space: pre-wrap; }
          <x>230</x>
          <y>340</y>
          <width>141</width>
-         <height>51</height>
+         <height>41</height>
         </rect>
        </property>
        <property name="font">
@@ -5253,6 +5243,31 @@ p, li { white-space: pre-wrap; }
          <string>B</string>
         </property>
        </item>
+      </widget>
+      <widget class="QPushButton" name="pushButton_5">
+       <property name="geometry">
+        <rect>
+         <x>60</x>
+         <y>400</y>
+         <width>311</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton
+ {
+    background-color: white;
+    color: color;
+}</string>
+       </property>
+       <property name="text">
+        <string>XÓA TẤT CẢ CÁC NỐT</string>
+       </property>
       </widget>
      </widget>
     </widget>
@@ -5411,6 +5426,24 @@ p, li { white-space: pre-wrap; }
      <string>Jazz Organ</string>
     </property>
    </widget>
+   <widget class="QPushButton" name="choose_file">
+    <property name="geometry">
+     <rect>
+      <x>1060</x>
+      <y>730</y>
+      <width>221</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>CHỌN FILE</string>
+    </property>
+   </widget>
    <zorder>c5</zorder>
    <zorder>a5</zorder>
    <zorder>b5</zorder>
@@ -5479,6 +5512,7 @@ p, li { white-space: pre-wrap; }
    <zorder>p4</zorder>
    <zorder>p5</zorder>
    <zorder>p6</zorder>
+   <zorder>choose_file</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
