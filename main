@@ -38,7 +38,7 @@ class Note():
             self.audio = librosa.effects.time_stretch(data,rate = stretch_factor)
         else:
             self.audio = data
-        self.audio = self.normalize(self.audio) /3
+        self.audio = self.normalize(self.audio)
 
     def normalize(self, audio):
         # Normalize the audio signal between -1 and 1
@@ -70,12 +70,13 @@ class Music():
             #count_time[start_index:start_index + len(x.audio)] += 1
         #count_time[count_time == 0] = 1
         #song = song / count_time
-        song = np.clip(song, -0.95, 0.95)
+        max_note = max(np.abs(song))
+        song = song /max_note
+        #song = np.clip(song, -0.95, 0.95)
         t = np.arange(0,len(song) /44100,1/44100)
         plt.plot(t,song)
         plt.show()
         write(name, 44100, (song * 32767).astype(np.int16))
-
 
 
 class MainWindow(QMainWindow):
