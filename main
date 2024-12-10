@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
 
 
         # Danh sách các nốt nhạc từ C2 đến A6
-        self.notes = [f"{note}{octave}" for octave in range(2, 7) for note in
+        self.notes = [f"{note}{octave}" for octave in range(2, 6) for note in
                       ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]]
 
         # Tạo vị trí x cho các nốt
@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         sharp_offsets = {"C#": 40, "D#": 70, "F#": 130, "G#": 160, "A#": 190}
 
         self.note_positions = {}
-        for octave in range(2, 7):
+        for octave in range(2, 6):
             for note in ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]:
                 if note in base_positions:
                     self.note_positions[f"{note}{octave}"] = base_positions[note] + (octave - 2) * 210
@@ -43,8 +43,13 @@ class MainWindow(QMainWindow):
         self.p1.clicked.connect(self.spage_1)
         self.p2.clicked.connect(self.spage_2)
         self.p3.clicked.connect(self.spage_3)
-        self.p4.clicked.connect(self.tao)
-        self.p5.clicked.connect(self.sua)
+        self.p4.clicked.connect(self.spage_4)
+        self.p5.clicked.connect(self.spage_5)
+        self.p6.clicked.connect(self.spage_6)
+        self.p7.clicked.connect(self.spage_7)
+
+        self.p_1.clicked.connect(self.tao)
+        self.p_2.clicked.connect(self.sua)
         self.pushButton.clicked.connect(self.create_column)
         self.pushButton_2.clicked.connect(self.export_csv)  # Xuất file CSV
         self.create_time_markers()
@@ -53,18 +58,24 @@ class MainWindow(QMainWindow):
 
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
-
     def spage_2(self):
         self.s1.setCurrentWidget(self.page_2)
-
     def spage_3(self):
         self.s1.setCurrentWidget(self.page_3)
+    def spage_4(self):
+        self.s1.setCurrentWidget(self.page_4)
+    def spage_5(self):
+        self.s1.setCurrentWidget(self.page_5)
+    def spage_6(self):
+        self.s1.setCurrentWidget(self.page_6)
+    def spage_7(self):
+        self.s1.setCurrentWidget(self.page_7)
 
     def tao(self):
-        self.s2.setCurrentWidget(self.page_4)
+        self.s2.setCurrentWidget(self.page1)
 
     def sua(self):
-        self.s2.setCurrentWidget(self.page_5)
+        self.s2.setCurrentWidget(self.page2)
 
     def is_valid_interval(self, start_time, end_time, note, instrument):
         """Kiểm tra xem khoảng thời gian, nốt nhạc và nhạc cụ có hợp lệ không."""
@@ -121,17 +132,31 @@ class MainWindow(QMainWindow):
             "duration": end_time - start_time
         })
 
+        selected_column = self.selected_column
+
         self.update_display()
+
+        # Khôi phục lại trạng thái chọn cột (nếu có)
+        if selected_column:
+            self.selected_column = selected_column
+            selected_column.setStyleSheet(selected_column.styleSheet() + "border: 2px solid red;")
+            tooltip = selected_column.toolTip()
+            tooltip = tooltip.replace("#", "&#35;")
+            self.label_11.setText(tooltip.replace("\n", "<br>"))
 
     def update_display(self):
         """Cập nhật hiển thị cột tín hiệu theo từng nhạc cụ riêng biệt."""
-        for sc_widget in [self.sc1, self.sc2, self.sc3]:
+        for sc_widget in [self.sc1, self.sc2, self.sc3, self.sc4, self.sc5, self.sc6, self.sc7]:
 
             sc_widget.setMinimumHeight(self.song_duration * 100)
             # sc_widget.updateGeometry()
             self.sa_1.verticalScrollBar().setValue(self.sa_1.verticalScrollBar().maximum())
             self.sa_2.verticalScrollBar().setValue(self.sa_2.verticalScrollBar().maximum())
             self.sa_3.verticalScrollBar().setValue(self.sa_3.verticalScrollBar().maximum())
+            self.sa_4.verticalScrollBar().setValue(self.sa_4.verticalScrollBar().maximum())
+            self.sa_5.verticalScrollBar().setValue(self.sa_5.verticalScrollBar().maximum())
+            self.sa_6.verticalScrollBar().setValue(self.sa_6.verticalScrollBar().maximum())
+            self.sa_7.verticalScrollBar().setValue(self.sa_7.verticalScrollBar().maximum())
             for child in sc_widget.findChildren(QLabel):
                 if child.toolTip():  # Chỉ xóa các cột tín hiệu, giữ lại thời gian
                     child.deleteLater()
@@ -146,12 +171,20 @@ class MainWindow(QMainWindow):
             finish_time = note_data["finish"]
             instrument = note_data["type"]
 
-            if instrument == "PIANO":
+            if instrument == "CFX Grand":
                 sc_widget = self.sc1
-            elif instrument == "VIOLIN":
+            elif instrument == "Bosendorfer":
                 sc_widget = self.sc2
-            elif instrument == "GUITAR":
+            elif instrument == "Harpsichord":
                 sc_widget = self.sc3
+            elif instrument == "Vibraphone":
+                sc_widget = self.sc4
+            elif instrument == "Pipe Organ":
+                sc_widget = self.sc5
+            elif instrument == "Jazz Organ":
+                sc_widget = self.sc6
+            elif instrument == "Strings":
+                sc_widget = self.sc7
             else:
                 QMessageBox.warning(self, "Lỗi", "Nhạc cụ không hợp lệ!")
                 return
@@ -179,15 +212,30 @@ class MainWindow(QMainWindow):
             )
 
             def select_column(event):
-                if self.selected_column:
+                # Kiểm tra nếu có cột đã được chọn trước đó
+                if self.selected_column and self.selected_column != column:
+                    # Bỏ chọn cột cũ
                     self.selected_column.setStyleSheet(
-                        self.selected_column.styleSheet().replace("border: 2px solid red;", ""))
+                        self.selected_column.styleSheet().replace("border: 2px solid red;", "")
+                    )
+
+               
+
+                # Cập nhật cột được chọn (cột mới)
                 self.selected_column = column
                 column.setStyleSheet(column.styleSheet() + "border: 2px solid red;")
+
+                # Hiển thị thông tin nốt nhạc trên label_11
                 tooltip = column.toolTip()
-                self.label_11.setText(tooltip.replace("\n", "<br>") ) # Thay thế xuống dòng thành HTML <br> để hiển thị đẹp hơn
+
+                # Thay thế ký hiệu # để tránh lỗi hiển thị HTML
+                tooltip = tooltip.replace("#", "&#35;")
+
+                # Xóa chữ "Selected Note:" trong nội dung hiển thị
+                self.label_11.setText(tooltip.replace("\n", "<br>"))
 
             column.mousePressEvent = select_column
+
             column.show()
 
         # Tạo cột cho các nốt không có dấu # trước
@@ -236,7 +284,7 @@ class MainWindow(QMainWindow):
 
     def create_time_markers(self):
         """Hiển thị mốc thời gian ở bên trái màn hình."""
-        for widget in [self.w1, self.w2, self.w3]:
+        for widget in [self.w1, self.w2, self.w3, self.w4, self.w5, self.w6, self.w7]:
             widget.setFixedSize(20, self.song_duration * 100)  # Cố định chiều cao ban đầu
             widget.setStyleSheet("background-color: lightgray;")  # Tùy chỉnh màu nền
 
@@ -343,5 +391,6 @@ app = QApplication(sys.argv)
 main_window = MainWindow()
 main_window.show()
 sys.exit(app.exec_())
+
 
 
