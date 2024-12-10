@@ -2251,7 +2251,7 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="page1">
      <widget class="QWidget" name="widget_2" native="true">
@@ -3840,11 +3840,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <item>
         <property name="text">
-         <string>1</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>2</string>
         </property>
        </item>
@@ -3861,11 +3856,6 @@ p, li { white-space: pre-wrap; }
        <item>
         <property name="text">
          <string>5</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>6</string>
         </property>
        </item>
       </widget>
@@ -5278,7 +5268,7 @@ p, li { white-space: pre-wrap; }
       <x>1460</x>
       <y>0</y>
       <width>93</width>
-      <height>81</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
@@ -5296,7 +5286,7 @@ p, li { white-space: pre-wrap; }
       <x>1460</x>
       <y>70</y>
       <width>93</width>
-      <height>81</height>
+      <height>71</height>
      </rect>
     </property>
     <property name="font">
