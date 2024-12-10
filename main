@@ -1,9 +1,81 @@
 import csv
-from PyQt5.QtWidgets import QMessageBox, QMainWindow, QLabel, QApplication
+from PyQt5.QtWidgets import QMessageBox, QMainWindow, QLabel, QApplication, QFileDialog
 from PyQt5.uic import loadUi
 from PyQt5.QtCore import Qt
 import sys
 import os
+import numpy as np
+import soundfile as sf
+import matplotlib.pyplot as plt
+import librosa
+import librosa.display
+import pandas as pd
+from scipy.io import wavfile
+from scipy.io.wavfile import write
+import os
+
+class Note():
+    def __init__(self,ins,note,start,finish,duration):
+        self.start = start
+        self.finish = finish
+        self.note = note
+        self.ins = ins
+        self.duration = duration
+        self.audio = []
+        self.get_music()
+
+    def get_music(self):
+        file = self.ins + "_" + self.note + '.wav'
+        file = os.path.join(self.ins,file)
+        data, sr = librosa.load(file, sr=44100)
+        if  self.ins == 'string':
+            stretch_factor = 1.2/(self.duration*1.1)
+        elif self.ins == 'vibra':
+            stretch_factor = 0.7 / (self.duration * 1)
+        else:
+            stretch_factor = 0.7 / (self.duration * 1.3)
+        if stretch_factor != 1:
+            self.audio = librosa.effects.time_stretch(data,rate = stretch_factor)
+        else:
+            self.audio = data
+        self.audio = self.normalize(self.audio) /3
+
+    def normalize(self, audio):
+        # Normalize the audio signal between -1 and 1
+        max_val = np.max(np.abs(audio))
+        if max_val > 0:
+            return audio / max_val
+        return audio
+
+class Music():
+    def __init__(self, file_path):
+        self.path = file_path
+        self.note = []
+
+    def read_note(self):
+        data = pd.read_csv(self.path)
+        N = data.shape[0]
+        for i in range(N):
+            ins,note,start,finish,duration = data.iloc[i]
+            note = Note(ins, note, start, finish, duration)
+            self.note.append(note)
+
+    def create_music(self,name):
+        length = max((obj.finish for obj in self.note), default=None)
+        song = np.zeros(int((1+length)*44100))
+        count_time = np.zeros(int((1+length)*44100))
+        for x in self.note:
+            start_index = int(44100*x.start)
+            song[start_index:start_index + len(x.audio)] += x.audio
+            #count_time[start_index:start_index + len(x.audio)] += 1
+        #count_time[count_time == 0] = 1
+        #song = song / count_time
+        song = np.clip(song, -0.95, 0.95)
+        t = np.arange(0,len(song) /44100,1/44100)
+        plt.plot(t,song)
+        plt.show()
+        write(name, 44100, (song * 32767).astype(np.int16))
+
 
 
 class MainWindow(QMainWindow):
@@ -11,7 +83,6 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
         loadUi("dd.ui", self)
         self.selected_column = None  # Lưu trạng thái cột được chọn
-
 
         # Danh sách các nốt nhạc từ C2 đến A6
         self.notes = [f"{note}{octave}" for octave in range(2, 6) for note in
@@ -53,21 +124,28 @@ class MainWindow(QMainWindow):
         self.pushButton.clicked.connect(self.create_column)
         self.pushButton_2.clicked.connect(self.export_csv)  # Xuất file CSV
         self.create_time_markers()
-        self.pushButton_4.clicked.connect(self.delete_column) #Nút xóa
+        self.pushButton_4.clicked.connect(self.delete_column)  # Nút xóa
         self.pushButton_3.clicked.connect(self.edit_column)  # Nút Sửa
+        self.choose_file.clicked.connect(self.choose_csv_file) # Nút chọn file
 
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
+
     def spage_2(self):
         self.s1.setCurrentWidget(self.page_2)
+
     def spage_3(self):
         self.s1.setCurrentWidget(self.page_3)
+
     def spage_4(self):
         self.s1.setCurrentWidget(self.page_4)
+
     def spage_5(self):
         self.s1.setCurrentWidget(self.page_5)
+
     def spage_6(self):
         self.s1.setCurrentWidget(self.page_6)
+
     def spage_7(self):
         self.s1.setCurrentWidget(self.page_7)
 
@@ -85,7 +163,55 @@ class MainWindow(QMainWindow):
             if instrument == existing_instrument and not (end_time <= existing_start or start_time >= existing_end):
                 return False
         return True
+    def choose_csv_file(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Chọn file CSV", "", "CSV Files (*.csv)")
+        if not file_path:
+            return  # Trở lại giao diện chính nếu không chọn file
 
+        try:
+            # Đọc dữ liệu từ file CSV
+            data = pd.read_csv(file_path)
+
+            # Kiểm tra cột dữ liệu hợp lệ
+            required_columns = ["type", "note", "start", "finish", "duration"]
+            if not all(column in data.columns for column in required_columns):
+                QMessageBox.warning(self, "Lỗi", "File CSV không đúng định dạng yêu cầu!")
+                return
+
+            # Xóa dữ liệu cũ và cập nhật lại dữ liệu
+            self.music_data.clear()
+            self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
+            self.used_intervals = {note: [] for note in self.notes}
+
+            for _, row in data.iterrows():
+                instrument, note, start, finish, duration = row["type"], row["note"], row["start"], row["finish"], row[
+                    "duration"]
+
+                # Kiểm tra giá trị hợp lệ
+                if note not in self.notes or not self.is_valid_interval(start, finish, note, instrument):
+                    continue  # Bỏ qua các hàng không hợp lệ
+
+                # Cập nhật dữ liệu và tạo cột tín hiệu
+                self.music_data.append({
+                    "type": instrument,
+                    "note": note,
+                    "start": start,
+                    "finish": finish,
+                    "duration": duration
+                })
+
+                start_index = int(start * self.resolution)
+                end_index = int(finish * self.resolution)
+                for i in range(start_index, end_index):
+                    self.signal_array[note][i] = 1
+
+                self.used_intervals[note].append((start, finish, instrument))
+
+            # Cập nhật giao diện hiển thị
+            self.update_display_2()
+            QMessageBox.information(self, "Thành công", "Dữ liệu từ file CSV đã được cập nhật!")
+        except Exception as e:
+            QMessageBox.critical(self, "Lỗi", f"Không thể đọc file CSV: {e}")
     def create_column(self):
         """Xử lý tín hiệu nốt nhạc và hiển thị trên cột."""
         if not self.textEdit_1.toPlainText() or not self.textEdit_2.toPlainText():
@@ -219,8 +345,6 @@ class MainWindow(QMainWindow):
                         self.selected_column.styleSheet().replace("border: 2px solid red;", "")
                     )
 
-               
-
                 # Cập nhật cột được chọn (cột mới)
                 self.selected_column = column
                 column.setStyleSheet(column.styleSheet() + "border: 2px solid red;")
@@ -245,6 +369,8 @@ class MainWindow(QMainWindow):
         # Tạo cột cho các nốt có dấu # sau
         for data in sharp_notes:
             create_column1(data)
+
+
 
     def export_csv(self):
         """Xuất dữ liệu ra file CSV với tên tùy chỉnh."""
@@ -274,7 +400,19 @@ class MainWindow(QMainWindow):
                 writer.writeheader()
                 for row in self.music_data:
                     row_copy = row.copy()
-                    if row_copy["type"] == "VIOLIN":
+                    if row_copy["type"] == "CFX Grand":
+                        row_copy["type"] = "cfx"
+                    elif row_copy["type"] == "Bosendorfer":
+                        row_copy["type"] = "bos"
+                    elif row_copy["type"] == "Harpsichord":
+                        row_copy["type"] = "harp"
+                    elif row_copy["type"] == "Vibraphone":
+                        row_copy["type"] = "vibra"
+                    elif row_copy["type"] == "Pipe Organ":
+                        row_copy["type"] = "pipe"
+                    elif row_copy["type"] == "Jazz Organ":
+                        row_copy["type"] = "jazz"
+                    elif row_copy["type"] == "Strings":
                         row_copy["type"] = "string"
                     writer.writerow(row_copy)
 
@@ -282,6 +420,10 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể lưu tệp: {e}")
 
+        music = Music(file_name)
+        music.read_note()
+        file_name = file_name[:-4] + ".wav"
+        music.create_music(file_name)
     def create_time_markers(self):
         """Hiển thị mốc thời gian ở bên trái màn hình."""
         for widget in [self.w1, self.w2, self.w3, self.w4, self.w5, self.w6, self.w7]:
@@ -391,6 +533,3 @@ app = QApplication(sys.argv)
 main_window = MainWindow()
 main_window.show()
 sys.exit(app.exec_())
-
-
-
