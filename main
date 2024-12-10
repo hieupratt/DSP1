@@ -126,6 +126,7 @@ class MainWindow(QMainWindow):
         self.create_time_markers()
         self.pushButton_4.clicked.connect(self.delete_column)  # Nút xóa
         self.pushButton_3.clicked.connect(self.edit_column)  # Nút Sửa
+        self.pushButton_5.clicked.connect(self.clear_all)
         self.choose_file.clicked.connect(self.choose_csv_file) # Nút chọn file
 
     def spage_1(self):
@@ -208,7 +209,7 @@ class MainWindow(QMainWindow):
                 self.used_intervals[note].append((start, finish, instrument))
 
             # Cập nhật giao diện hiển thị
-            self.update_display_2()
+            self.update_display()
             QMessageBox.information(self, "Thành công", "Dữ liệu từ file CSV đã được cập nhật!")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi", f"Không thể đọc file CSV: {e}")
@@ -269,7 +270,11 @@ class MainWindow(QMainWindow):
             tooltip = selected_column.toolTip()
             tooltip = tooltip.replace("#", "&#35;")
             self.label_11.setText(tooltip.replace("\n", "<br>"))
-
+    def clear_all(self):
+        self.music_data.clear()
+        self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
+        self.used_intervals = {note: [] for note in self.notes}
+        self.update_display()
     def update_display(self):
         """Cập nhật hiển thị cột tín hiệu theo từng nhạc cụ riêng biệt."""
         for sc_widget in [self.sc1, self.sc2, self.sc3, self.sc4, self.sc5, self.sc6, self.sc7]:
@@ -297,19 +302,19 @@ class MainWindow(QMainWindow):
             finish_time = note_data["finish"]
             instrument = note_data["type"]
 
-            if instrument == "CFX Grand":
+            if instrument == "CFX Grand" or instrument == "cfx":
                 sc_widget = self.sc1
-            elif instrument == "Bosendorfer":
+            elif instrument == "Bosendorfer" or instrument == "bos":
                 sc_widget = self.sc2
-            elif instrument == "Harpsichord":
+            elif instrument == "Harpsichord" or instrument == "harp":
                 sc_widget = self.sc3
-            elif instrument == "Vibraphone":
+            elif instrument == "Vibraphone" or instrument == "vibra":
                 sc_widget = self.sc4
-            elif instrument == "Pipe Organ":
+            elif instrument == "Pipe Organ" or instrument == "pipe":
                 sc_widget = self.sc5
-            elif instrument == "Jazz Organ":
+            elif instrument == "Jazz Organ" or instrument == "jazz":
                 sc_widget = self.sc6
-            elif instrument == "Strings":
+            elif instrument == "Strings" or instrument == "string":
                 sc_widget = self.sc7
             else:
                 QMessageBox.warning(self, "Lỗi", "Nhạc cụ không hợp lệ!")
@@ -344,7 +349,15 @@ class MainWindow(QMainWindow):
                     self.selected_column.setStyleSheet(
                         self.selected_column.styleSheet().replace("border: 2px solid red;", "")
                     )
+                    # Nếu cột hiện tại đã được chọn, bỏ chọn khi nhấn lần nữa
+                if self.selected_column == column:
+                    self.selected_column.setStyleSheet(
+                                 self.selected_column.styleSheet().replace("border: 2px solid red;", "")
+                             )
+                    self.selected_column = None
 
+                    self.label_11.setText("")  # Xóa thông tin trên label_11
+                    return
                 # Cập nhật cột được chọn (cột mới)
                 self.selected_column = column
                 column.setStyleSheet(column.styleSheet() + "border: 2px solid red;")
