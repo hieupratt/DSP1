@@ -11,7 +11,8 @@
 
 *Hướng dẫn sử dụng* : Để sử dụng ứng dụng của chúng tôi, người dùng cần thực hiện các bước sau :
 - Bước 1 : Tải tất cả các tệp có trong dự án này về máy tính
-- Bước 2 : Mở cửa sổ Terminal sau đó chạy dòng lệnh `pip install -r requirements.txt`
+- Bước 2 : Mở cửa sổ Terminal sau đó chạy dòng lệnh
+               `pip install -r requirements.txt`
 - Bước 3 : Khởi chạy file **main.py**
     Sau khi thực hiện theo thứ tự các bước trên, giao diện của ứng dụng sẽ hiện lên và bạn có thể tạo bản nhạc mà mình muốn. 
 
