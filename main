@@ -130,6 +130,8 @@ class MainWindow(QMainWindow):
         self.pushButton_5.clicked.connect(self.clear_all)
         self.choose_file.clicked.connect(self.choose_csv_file) # Nút chọn file
 
+        self.spage_1()
+        self.tao()
     def spage_1(self):
         self.s1.setCurrentWidget(self.page_1)
         self.highlight_button1(self.p1)
@@ -172,16 +174,16 @@ class MainWindow(QMainWindow):
         for button in buttons:
             button.setStyleSheet("background-color: none;")  # Trạng thái mặc định
 
-        # Làm nổi bật nút được bấm
+        # làm nổi bật nút được bấm
         selected_button.setStyleSheet("background-color: lightblue;")
 
     def highlight_button2(self, selected_button):
-        # Đặt lại màu sắc cho tất cả các nút
+        # Đặt lại màu cho các nút không được bấm
         buttons = [self.p_1, self.p_2]
         for button in buttons:
             button.setStyleSheet("background-color: none;")  # Trạng thái mặc định
 
-        # Làm nổi bật nút được chọn
+        # Làm nổi bật nút được bấm
         selected_button.setStyleSheet("background-color: yellow;")
     def is_valid_interval(self, start_time, end_time, note, instrument):
         """Kiểm tra xem khoảng thời gian, nốt nhạc và nhạc cụ có hợp lệ không."""
@@ -191,8 +193,10 @@ class MainWindow(QMainWindow):
             if instrument == existing_instrument and not (end_time <= existing_start or start_time >= existing_end):
                 return False
         return True
+
     def choose_csv_file(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Chọn file CSV", "", "CSV Files (*.csv)")
+        """"Chọn file và xử lý dữ liệu đọc từ file"""
+        file_path, _ = QFileDialog.getOpenFileName(self, "Chọn file CSV", "", "CSV Files (*.csv)") # Chọn file từ máy tính
         if file_path:
             file_name = file_path.split("/")[-1]  # Tách tên file từ đường dẫn
             self.textEdit_3.setText(file_name)
@@ -203,13 +207,13 @@ class MainWindow(QMainWindow):
             # Đọc dữ liệu từ file CSV
             data = pd.read_csv(file_path)
 
-            # Kiểm tra cột dữ liệu hợp lệ
+            # Kiểm tra cột dữ liệu có hợp lệ không
             required_columns = ["type", "note", "start", "finish", "duration"]
             if not all(column in data.columns for column in required_columns):
                 QMessageBox.warning(self, "Lỗi", "File CSV không đúng định dạng yêu cầu!")
                 return
 
-            # Xóa dữ liệu cũ và cập nhật lại dữ liệu
+            # Xóa dữ liệu cũ và cập nhật lại dữ liệu từ file
             self.music_data.clear()
             self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
             self.used_intervals = {note: [] for note in self.notes}
@@ -294,10 +298,12 @@ class MainWindow(QMainWindow):
         self.update_display()
 
     def clear_all(self):
+        """Xóa dữ liêu các nốt đã tạo để tạo bản nhạc mới"""
         self.music_data.clear()
         self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
         self.used_intervals = {note: [] for note in self.notes}
         self.update_display()
+        self.label_11.setText("")
     def update_display(self):
         """Cập nhật hiển thị cột tín hiệu theo từng nhạc cụ riêng biệt."""
         for sc_widget in [self.sc1, self.sc2, self.sc3, self.sc4, self.sc5, self.sc6, self.sc7]:
