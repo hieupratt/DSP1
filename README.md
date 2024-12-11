@@ -15,6 +15,7 @@
 
    `pip install -r requirements.txt`
 - Bước 3 : Khởi chạy file **main.py**
-    Sau khi thực hiện theo thứ tự các bước trên, giao diện của ứng dụng sẽ hiện lên và bạn có thể tạo bản nhạc mà mình muốn. 
+
+   Sau khi thực hiện đủ các bước trên, giao diện của ứng dụng sẽ hiện lên và bạn có thể tạo bản nhạc mà mình muốn. 
 
  ***Cuối cùng**, xin cảm ơn mọi người đã tin dùng và sử dụng sản phẩm của chúng tôi <3*
