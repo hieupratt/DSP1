@@ -599,6 +599,12 @@ class MainWindow(QMainWindow):
 
 
 app = QApplication(sys.argv)
+app.setStyleSheet("""
+    QToolTip {
+        background-color: none;
+        color: black;
+    }
+""")
 main_window = MainWindow()
 main_window.show()
 sys.exit(app.exec_())
