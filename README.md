@@ -9,8 +9,10 @@
 - Tạo nhạc : Xuất ra file wav bản nhạc hoàn chỉnh từ dữ liệu được lưu lại khi tạo các nốt nhạc.
 - Chọn file csv từ máy tính có chứa thông tin của các nốt nhạc, sau đó đọc dữ liệu và cập nhật lên màn hình giao diện.
 
-*Hướng dẫn sử dụng* : Để sử dụng ứng dụng của chúng tôi, người dùng cần tải tất cả các file có trong dự án này về và sau đó chỉ cần khởi chạy file **main.py**
-
-***Lưu ý***: người dùng cần đảm bảo đã cài đặt tất cả thư viện được sử dụng trong file **main.py** trước khi chạy chương trình
+*Hướng dẫn sử dụng* : Để sử dụng ứng dụng của chúng tôi, người dùng cần thực hiện các bước sau :
+- Bước 1 : Tải tất cả các tệp có trong dự án này về máy tính
+- Bước 2 : Mở cửa sổ Terminal sau đó chạy dòng lệnh `pip install -r requirements.txt`
+- Bước 3 : Khởi chạy file **main.py**
+    Sau khi thực hiện theo thứ tự các bước trên, giao diện của ứng dụng sẽ hiện lên và bạn có thể tạo bản nhạc mà mình muốn. 
 
  ***Cuối cùng**, xin cảm ơn mọi người đã tin dùng và sử dụng sản phẩm của chúng tôi <3*
