@@ -1840,6 +1840,16 @@ background-color: rgb(250, 250, 250);
       <pointsize>16</pointsize>
      </font>
     </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
+}</string>
+    </property>
     <property name="text">
      <string>TẠO NHẠC</string>
     </property>
@@ -2289,6 +2299,15 @@ p, li { white-space: pre-wrap; }
  {
     background-color: white;
     color: color;
+}
+
+QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
 }</string>
        </property>
        <property name="text">
@@ -3897,6 +3916,15 @@ p, li { white-space: pre-wrap; }
  {
     background-color: white;
     color: color;
+}
+
+QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
 }</string>
        </property>
        <property name="text">
@@ -5141,6 +5169,14 @@ p, li { white-space: pre-wrap; }
  {
     background-color: white;
     color: color;
+}
+QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
 }</string>
        </property>
        <property name="text">
@@ -5253,6 +5289,14 @@ p, li { white-space: pre-wrap; }
  {
     background-color: white;
     color: color;
+}
+QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
 }</string>
        </property>
        <property name="text">
@@ -5429,6 +5473,16 @@ p, li { white-space: pre-wrap; }
      <font>
       <pointsize>16</pointsize>
      </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">QPushButton:hover {
+    background-color: rgba(123, 183, 229, 0.8); 
+    border: 1px solid #808080; 
+}
+
+QPushButton:pressed {
+    background-color:rgba(46, 247, 79, 0.8); 
+}</string>
     </property>
     <property name="text">
      <string>CHỌN FILE</string>
