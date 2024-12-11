@@ -10,10 +10,10 @@
 - Import notes from a CSV file: Users can select a CSV file from their computer containing note data, which will be read and updated on the interface.
 
 *User Guide* : To use this application, follow these steps :
-Step 1: Download all the files included in this project to your computer.
-Step 2: Open the Terminal and execute the following command:
+- Step 1: Download all the files included in this project to your computer.
+- Step 2: Open the Terminal and execute the following command:
    `pip install -r requirements.txt`
-Step 3: Launch the main.py file.
+- Step 3: Launch the main.py file.
 
  *Once you have completed these steps, the application's interface will appear, and you can create your desired music track..*
 
