@@ -1,21 +1,20 @@
-*Dự án* : Ứng dụng tạo các bản nhạc điện tử dựa trên music sheet cho trước
+*Project* : Application for Creating Electronic Music Based on Given Music Sheets
 
-*Giới thiệu* : Dự án này xây dựng ứng dụng tái tạo các bản nhạc điện tử với độ trung thực cao. Ứng dụng cho phép người dùng thiết kế một bản nhạc bằng cách phối hợp âm thanh từ nhiều loại nhạc cụ khác nhau, từ piano, violin cho tới harpsichord hay vibraphone. 
+*Introduction* : This project aims to build an application that reproduces electronic music with high fidelity. The application allows users to design a piece of music by combining sounds from various instruments, including piano, violin, harpsichord, and vibraphone.
 
-*Tính năng* : Ứng dụng được tích hợp 1 số chức năng quan trọng như : 
+*Features* : The application is integrated with several essential features, such as:
 
-- Tạo nốt nhạc : Cho phép người dùng tạo một nốt nhạc mới. 
-- Sửa hoặc xóa nốt nhạc : Cho phép người dùng có thể chỉnh sửa hoặc xóa nốt nhạc được chọn trên màn hình hiển thị.
-- Tạo nhạc : Xuất ra file wav bản nhạc hoàn chỉnh từ dữ liệu được lưu lại khi tạo các nốt nhạc.
-- Chọn file csv từ máy tính có chứa thông tin của các nốt nhạc, sau đó đọc dữ liệu và cập nhật lên màn hình giao diện.
+- Create a musical note: Enables users to create a new musical note.
+- Edit or delete notes: Allows users to edit or delete selected notes displayed on the interface.
+- Generate music: Exports a complete music track as a WAV file based on the saved note data.
+- Import notes from a CSV file: Users can select a CSV file from their computer containing note data, which will be read and updated on the interface.
 
-*Hướng dẫn sử dụng* : Để sử dụng ứng dụng của chúng tôi, người dùng cần thực hiện các bước sau :
-- Bước 1 : Tải tất cả các tệp có trong dự án này về máy tính
-- Bước 2 : Mở cửa sổ Terminal sau đó chạy dòng lệnh sau
-
+*User Guide* : To use this application, follow these steps :
+Step 1: Download all the files included in this project to your computer.
+Step 2: Open the Terminal and execute the following command:
    `pip install -r requirements.txt`
-- Bước 3 : Khởi chạy file **main.py**
+Step 3: Launch the main.py file.
 
- *Sau khi thực hiện đủ các bước trên, giao diện của ứng dụng sẽ hiện lên và bạn có thể tạo bản nhạc mà mình muốn.*
+ *Once you have completed these steps, the application's interface will appear, and you can create your desired music track..*
 
- ***Cuối cùng**, xin cảm ơn mọi người đã tin dùng và sử dụng sản phẩm của chúng tôi <3*
+ ***Finally**, thank you for trusting and using our product!*
