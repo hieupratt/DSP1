@@ -12,6 +12,7 @@
 *User Guide* : To use this application, follow these steps :
 - Step 1: Download all the files included in this project to your computer.
 - Step 2: Open the Terminal and execute the following command:
+
    `pip install -r requirements.txt`
 - Step 3: Launch the main.py file.
 
