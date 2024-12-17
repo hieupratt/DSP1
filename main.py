@@ -299,6 +299,12 @@ class MainWindow(QMainWindow):
 
     def clear_all(self):
         """Xóa dữ liêu các nốt đã tạo để tạo bản nhạc mới"""
+        if self.selected_column:
+            # Xóa cột đang chọn nếu có
+            # self.selected_column.setStyleSheet(
+            #     self.selected_column.styleSheet().replace("border: 2px solid red;", "")
+            # )
+            self.selected_column = None
         self.music_data.clear()
         self.signal_array = {note: [0] * self.time_array_length for note in self.notes}
         self.used_intervals = {note: [] for note in self.notes}
